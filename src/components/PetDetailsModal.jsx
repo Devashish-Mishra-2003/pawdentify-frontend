@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
 
-export default function PetDetailsModal({ isOpen, onClose, pet, onAddNote, onDeleteNote }) {
+export default function PetDetailsModal({ isOpen, onClose, pet, onAddNote, onDeleteNote, onDelete }) {
   const { t } = useTranslation();
   const [newNote, setNewNote] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('other');
@@ -11,7 +11,6 @@ export default function PetDetailsModal({ isOpen, onClose, pet, onAddNote, onDel
 
   if (!isOpen || !pet) return null;
 
-  // Helper function to get pet ID
   const getPetId = () => pet._id || pet.id;
 
   const categories = [
@@ -25,8 +24,7 @@ export default function PetDetailsModal({ isOpen, onClose, pet, onAddNote, onDel
 
   const handleAddNote = () => {
     if (newNote.trim()) {
-      const petId = getPetId();
-      onAddNote(petId, newNote, selectedCategory);
+      onAddNote(getPetId(), newNote, selectedCategory);
       setNewNote('');
       setSelectedCategory('other');
       setShowNoteInput(false);
@@ -39,18 +37,13 @@ export default function PetDetailsModal({ isOpen, onClose, pet, onAddNote, onDel
     const today = new Date();
     const months = (today.getFullYear() - birth.getFullYear()) * 12 + (today.getMonth() - birth.getMonth());
     const years = Math.floor(months / 12);
-    const remainingMonths = months % 12;
-    
-    if (years > 0) {
-      return `${years} ${t('dashboard.pets.yearsOld')}`;
-    } else {
-      return `${remainingMonths} ${t('dashboard.pets.monthsOld')}`;
-    }
+    if (years > 0) return `${years} ${t('dashboard.pets.yearsOld')}`;
+    return `${months % 12} ${t('dashboard.pets.monthsOld')}`;
   };
 
-  const filteredNotes = filterCategory === 'all' 
-    ? (pet.notes || []) 
-    : (pet.notes || []).filter(note => note.category === filterCategory);
+  const filteredNotes = (pet.notes || []).filter(note => 
+    filterCategory === 'all' ? true : note.category === filterCategory
+  );
 
   const inputClass = "w-full px-6 py-4 rounded-3xl bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/10 text-black dark:text-white placeholder-gray-400 dark:placeholder-gray-600 focus:outline-none focus:border-[#30A7DB] transition-all font-semibold shadow-inner";
   const labelClass = "block text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 dark:text-gray-500 mb-2 px-2";
@@ -74,37 +67,37 @@ export default function PetDetailsModal({ isOpen, onClose, pet, onAddNote, onDel
           transition={{ type: 'spring', damping: 20, stiffness: 100 }}
         >
           {/* Hero Section */}
-          <div className="relative h-96 flex-shrink-0 group overflow-hidden">
+          <div className="relative h-96 flex-shrink-0">
              <img 
                src={pet.image || pet.image_url} 
                alt={pet.name}
-               className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+               className="w-full h-full object-cover"
              />
              <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
              
              {/* Close Button */}
              <button 
                onClick={onClose}
-               className="absolute top-8 right-8 w-12 h-12 rounded-full bg-black/50 backdrop-blur-md border border-white/10 flex items-center justify-center text-white hover:bg-[#F07E7E] transition-all transform hover:rotate-90 z-20"
+               className="absolute top-8 right-8 w-12 h-12 rounded-full bg-black/50 backdrop-blur-md border border-white/10 flex items-center justify-center text-white hover:bg-[#F07E7E] transition-all z-20"
              >
                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12" /></svg>
              </button>
 
              {/* Bio Overlay */}
-             <div className="absolute bottom-10 left-10 right-10 flex flex-col md:flex-row md:items-end justify-between gap-6 z-10 text-white">
+             <div className="absolute bottom-10 left-10 right-10 flex flex-col md:flex-row md:items-end justify-between gap-6 z-10">
                 <div>
-                   <span className="font-handwriting text-3xl text-[#30A7DB] mb-2 block drop-shadow-lg">Our Companion</span>
-                   <h2 className="text-5xl md:text-6xl font-black leading-[0.9] tracking-tighter uppercase drop-shadow-2xl">{pet.name}</h2>
+                   <span className="font-handwriting text-3xl text-[#30A7DB] mb-2 block drop-shadow-md">Our Companion</span>
+                   <h2 className="text-5xl md:text-7xl font-black leading-[0.8] tracking-tighter uppercase drop-shadow-2xl" style={{ color: 'white' }}>{pet.name}</h2>
                 </div>
                 <div className="flex gap-4">
                    <div className="bg-white/10 backdrop-blur-md border border-white/10 rounded-3xl p-4 min-w-[120px] shadow-lg">
                       <span className="block text-[8px] font-black uppercase text-white/50 tracking-widest mb-1">{t('dashboard.pets.petBreed')}</span>
-                      <span className="font-bold">{pet.breed}</span>
+                      <span className="font-bold" style={{ color: 'white' }}>{pet.breed}</span>
                    </div>
                    {pet.birthday && (
                      <div className="bg-[#30A7DB]/20 backdrop-blur-md border border-[#30A7DB]/20 rounded-3xl p-4 min-w-[120px] shadow-lg">
                         <span className="block text-[8px] font-black uppercase text-[#30A7DB] tracking-widest mb-1">{t('dashboard.pets.age')}</span>
-                        <span className="font-bold">{calculateAge(pet.birthday)}</span>
+                        <span className="font-bold" style={{ color: 'white' }}>{calculateAge(pet.birthday)}</span>
                      </div>
                    )}
                 </div>
@@ -116,25 +109,35 @@ export default function PetDetailsModal({ isOpen, onClose, pet, onAddNote, onDel
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                <div className="flex items-center gap-4">
                   <div className="w-2 h-12 bg-[#8c52ff] rounded-full"></div>
-                  <h3 className="text-3xl font-black text-black dark:text-white tracking-tight leading-none uppercase">{t('dashboard.pets.petDetails.journal')}</h3>
+                  <h3 className="text-4xl font-black text-black dark:text-white tracking-tight uppercase leading-none">Pet Journal</h3>
                </div>
                
-               <button
-                 onClick={() => setShowNoteInput(!showNoteInput)}
-                 className="pill-button bg-[#8c52ff] text-white py-4 px-8 shadow-[0_20px_40px_rgba(140,82,255,0.3)] hover:-translate-y-1 transform transition-all active:scale-95"
-               >
-                 {t('dashboard.pets.petDetails.addNote')}
-               </button>
+               <div className="flex gap-3">
+                 {onDelete && (
+                   <button
+                     onClick={onDelete}
+                     className="pill-button bg-red-50 dark:bg-red-900/10 text-red-500 border-2 border-red-100 dark:border-red-900/20 px-8 hover:bg-black dark:hover:bg-white hover:text-white dark:hover:text-black transition-all shadow-none"
+                   >
+                     Remove Pet
+                   </button>
+                 )}
+                 <button
+                   onClick={() => setShowNoteInput(!showNoteInput)}
+                   className="pill-button bg-[#8c52ff] text-white py-4 px-8 shadow-[0_20px_40px_rgba(140,82,255,0.3)] hover:-translate-y-1"
+                 >
+                   {t('dashboard.pets.petDetails.addNote')}
+                 </button>
+               </div>
             </div>
 
             {/* Note Input Form */}
             <AnimatePresence>
               {showNoteInput && (
                 <motion.div 
-                  className="bento-card border-2 border-[#8c52ff20] bg-[#8c52ff05] p-8 space-y-6 relative z-20"
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
-                  exit={{ opacity: 0, height: 0 }}
+                  className="bento-card border-2 border-[#8c52ff20] bg-[#8c52ff05] p-8 space-y-6"
+                  initial={{ opacity: 0, y: -20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
                 >
                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                       <div className="md:col-span-1">
@@ -151,27 +154,29 @@ export default function PetDetailsModal({ isOpen, onClose, pet, onAddNote, onDel
                       </div>
                       <div className="md:col-span-2">
                          <label className={labelClass}>Note Content</label>
-                         <textarea
+                         <input
+                           type="text"
                            value={newNote}
                            onChange={(e) => setNewNote(e.target.value)}
                            placeholder={t('dashboard.pets.petDetails.notePlaceholder')}
-                           className={`${inputClass} min-h-[100px] resize-none`}
+                           className={inputClass}
                          />
                       </div>
                    </div>
                    <div className="flex gap-4 justify-end">
-                      <button onClick={() => setShowNoteInput(false)} className="text-gray-400 font-bold hover:text-black dark:hover:text-white px-6 transition-colors">Cancel</button>
-                      <button onClick={handleAddNote} className="pill-button bg-black dark:bg-white text-white dark:text-black px-10 py-4 shadow-xl hover:-translate-y-1">Save Entry</button>
+                      <button onClick={() => setShowNoteInput(false)} className="text-gray-400 font-bold hover:text-black dark:hover:text-white px-6">Cancel</button>
+                      <button onClick={handleAddNote} className="pill-button bg-black dark:bg-white text-white dark:text-black px-10 py-4">Save Entry</button>
                    </div>
                 </motion.div>
               )}
             </AnimatePresence>
 
-            {/* Filter Pills */}
+            {/* Filter Chips - Hidden Scrollbar */}
             <div className="flex items-center gap-3 overflow-x-auto no-scrollbar pb-2">
                <button 
                  onClick={() => setFilterCategory('all')}
-                 className={`px-8 py-4 rounded-full text-[10px] font-black uppercase tracking-widest border-2 transition-all whitespace-nowrap ${filterCategory === 'all' ? 'bg-[#30A7DB] border-[#30A7DB] text-white shadow-lg' : 'bg-gray-50 dark:bg-white/5 border-gray-100 dark:border-white/10 text-gray-400 hover:border-gray-200 focus:outline-none'}`}
+                 className={`px-8 py-4 rounded-full text-[10px] font-black uppercase tracking-widest border-2 transition-all whitespace-nowrap ${filterCategory === 'all' ? 'bg-[#30A7DB] border-[#30A7DB] text-white shadow-lg' : 'bg-gray-50 dark:bg-white/5 border-gray-100 dark:border-white/10 text-gray-400 hover:border-gray-200'}`}
+                 style={{ color: filterCategory === 'all' ? 'white' : '' }}
                >
                  All Entries
                </button>
@@ -179,7 +184,7 @@ export default function PetDetailsModal({ isOpen, onClose, pet, onAddNote, onDel
                   <button 
                     key={cat.value}
                     onClick={() => setFilterCategory(cat.value)}
-                    className={`px-8 py-4 rounded-full text-[10px] font-black uppercase tracking-widest border-2 transition-all whitespace-nowrap ${filterCategory === cat.value ? 'shadow-lg' : 'bg-gray-50 dark:bg-white/5 border-gray-100 dark:border-white/10 text-gray-400 hover:border-gray-200 focus:outline-none'}`}
+                    className={`px-8 py-4 rounded-full text-[10px] font-black uppercase tracking-widest border-2 transition-all whitespace-nowrap ${filterCategory === cat.value ? 'shadow-lg' : 'bg-gray-50 dark:bg-white/5 border-gray-100 dark:border-white/10 text-gray-400 hover:border-gray-200'}`}
                     style={{ 
                       borderColor: filterCategory === cat.value ? cat.color : '',
                       backgroundColor: filterCategory === cat.value ? `${cat.color}15` : '',
@@ -204,33 +209,28 @@ export default function PetDetailsModal({ isOpen, onClose, pet, onAddNote, onDel
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
                         exit={{ opacity: 0, scale: 0.9 }}
-                        className="bento-card border-gray-100 dark:border-white/10 border-2 bg-white dark:bg-[#111111] p-8 shadow-sm group hover:shadow-md transition-shadow relative overflow-hidden"
+                        className="bento-card border-gray-100 dark:border-white/10 border-2 bg-white dark:bg-[#111111] p-8 relative overflow-hidden group shadow-sm"
                       >
                          <div className="absolute top-0 left-0 w-1.5 h-full" style={{ backgroundColor: category?.color }} />
                          <div className="flex items-center justify-between mb-4">
                             <span className="text-[10px] font-black uppercase tracking-[0.2em]" style={{ color: category?.color }}>{category?.label}</span>
-                            <span className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest bg-gray-50 dark:bg-white/5 px-3 py-1 rounded-full border border-gray-100 dark:border-white/10">
-                              {new Date(note.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                            <span className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest bg-gray-50 dark:bg-white/5 px-3 py-1 rounded-full">
+                              {new Date(note.date).toLocaleDateString()}
                             </span>
                          </div>
-                         <p className="text-xl text-black dark:text-white font-bold leading-snug mb-6">{note.text}</p>
-                         <div className="flex items-center justify-between">
-                            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">
-                               Recorded on {new Date(note.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                            </p>
-                            <button
-                              onClick={() => onDeleteNote(getPetId(), note.id)}
-                              className="text-[10px] font-black uppercase tracking-widest text-[#F07E7E] opacity-0 group-hover:opacity-100 transition-opacity hover:underline"
-                            >
-                              Revoke Record &times;
-                            </button>
-                         </div>
+                         <p className="text-xl text-black dark:text-white font-bold leading-snug mb-4">{note.text}</p>
+                         <button
+                           onClick={() => onDeleteNote && onDeleteNote(getPetId(), note.id)}
+                           className="text-[10px] font-black uppercase tracking-widest text-[#F07E7E] opacity-0 group-hover:opacity-100 transition-opacity hover:underline"
+                         >
+                           Revoke Entry &times;
+                         </button>
                       </motion.div>
                     );
                   })
                 ) : (
                   <div className="bento-card border-dashed border-2 border-gray-100 dark:border-white/10 bg-gray-50/50 dark:bg-white/5 py-24 text-center">
-                     <p className="text-gray-400 font-bold uppercase tracking-widest text-xs italic">No entries found for this category.</p>
+                     <p className="text-gray-400 font-bold uppercase tracking-widest text-[10px] italic">Your companion's journal is empty.</p>
                   </div>
                 )}
               </AnimatePresence>
@@ -240,7 +240,7 @@ export default function PetDetailsModal({ isOpen, onClose, pet, onAddNote, onDel
           <div className="p-10 pt-0 flex-shrink-0 mt-auto">
              <button
                onClick={onClose}
-               className="w-full pill-button bg-gray-100 dark:bg-white/5 text-gray-400 dark:text-gray-500 hover:text-black dark:hover:text-white border-0 shadow-none py-6 font-black uppercase tracking-[0.2em] text-xs transition-colors"
+               className="w-full pill-button bg-gray-100 dark:bg-white/5 text-gray-400 dark:text-gray-500 hover:text-black dark:hover:text-white border-0 shadow-none py-6 font-black uppercase tracking-widest text-xs"
              >
                Return to Gallery
              </button>

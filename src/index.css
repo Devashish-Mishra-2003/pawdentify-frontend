@@ -4,7 +4,6 @@
 /* Force dark: utilities to use the .dark class on <html>, not OS prefers-color-scheme */
 @custom-variant dark (&:where(.dark, .dark *));
 
-/* ===== ROOBAROO-INSPIRED THEME TOKENS ===== */
 :root {
   /* Core Backgrounds */
   --color-bg-app: #FFFFFF;
@@ -139,4 +138,13 @@ h1, h2, h3, h4, h5, h6 {
 
 .reveal {
   animation: slideUpFade 0.8s ease-out forwards;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }

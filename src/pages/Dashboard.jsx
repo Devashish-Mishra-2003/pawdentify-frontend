@@ -92,6 +92,46 @@ export default function Dashboard() {
     }
   };
 
+  const handleAddNote = async (petId, text, category) => {
+    try {
+      const token = await getToken();
+      const body = new URLSearchParams();
+      body.append('text', text);
+      body.append('category', category);
+
+      const res = await fetch(`${API_URL}/api/pets/${petId}/notes`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/x-www-form-urlencoded',
+          Authorization: `Bearer ${token}` 
+        },
+        body: body
+      });
+      if (res.ok) {
+        const updatedPet = await res.json();
+        setPets(pets.map(p => getItemId(p) === petId ? updatedPet : p));
+        setSelectedPet(updatedPet);
+        setToast({ message: 'Note added', type: 'success' });
+      }
+    } catch (e) { setToast({ message: 'Error adding note', type: 'error' }); }
+  };
+
+  const handleDeleteNote = async (petId, noteId) => {
+    try {
+      const token = await getToken();
+      const res = await fetch(`${API_URL}/api/pets/${petId}/notes/${noteId}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const updatedPet = await res.json();
+        setPets(pets.map(p => getItemId(p) === petId ? updatedPet : p));
+        setSelectedPet(updatedPet);
+        setToast({ message: 'Note removed', type: 'success' });
+      }
+    } catch (e) { setToast({ message: 'Error removing note', type: 'error' }); }
+  };
+
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center bg-white dark:bg-[#050505] pt-24">
        <div className="w-16 h-16 border-4 border-[#30A7DB] border-t-transparent animate-spin rounded-full"></div>
@@ -222,7 +262,14 @@ export default function Dashboard() {
       </div>
 
       <AddPetModal isOpen={isAddPetModalOpen} onClose={() => setIsAddPetModalOpen(false)} onSave={handleSavePet} />
-      <PetDetailsModal isOpen={isPetDetailsModalOpen} onClose={() => setIsPetDetailsModalOpen(false)} pet={selectedPet} onDelete={() => handleDeletePet(getItemId(selectedPet))} />
+      <PetDetailsModal 
+        isOpen={isPetDetailsModalOpen} 
+        onClose={() => setIsPetDetailsModalOpen(false)} 
+        pet={selectedPet} 
+        onDelete={() => selectedPet && handleDeletePet(getItemId(selectedPet))}
+        onAddNote={handleAddNote}
+        onDeleteNote={handleDeleteNote}
+      />
 
       <AnimatePresence>{toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}</AnimatePresence>
     </div>
