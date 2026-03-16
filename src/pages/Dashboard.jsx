@@ -25,7 +25,7 @@ const Toast = ({ message, type = 'success', onClose }) => {
 };
 
 export default function Dashboard() {
-  const { user } = useUser();
+  const { user, isLoaded } = useUser();
   const { getToken } = useAuth();
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -42,9 +42,14 @@ export default function Dashboard() {
 
   useEffect(() => {
     const fetchData = async () => {
+      if (!isLoaded || !user) return;
       setLoading(true);
       try {
         const token = await getToken();
+        if (!token) {
+          setLoading(false);
+          return;
+        }
         const [petsRes, historyRes] = await Promise.all([
           fetch(`${API_URL}/api/pets`, { headers: { Authorization: `Bearer ${token}` } }),
           fetch(`${API_URL}/api/history`, { headers: { Authorization: `Bearer ${token}` } }),
@@ -55,7 +60,7 @@ export default function Dashboard() {
       setLoading(false);
     };
     fetchData();
-  }, [getToken]);
+  }, [isLoaded, user, getToken]);
 
   const handleSavePet = async (petData) => {
     try {
