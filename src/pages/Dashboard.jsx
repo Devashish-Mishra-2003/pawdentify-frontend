@@ -107,10 +107,27 @@ export default function Dashboard() {
         },
         body: body
       });
+      
       if (res.ok) {
-        const updatedPet = await res.json();
-        setPets(pets.map(p => getItemId(p) === petId ? updatedPet : p));
-        setSelectedPet(updatedPet);
+        const result = await res.json();
+        // If the backend returns a single note or an updated pet, we handle it safely
+        setPets(prevPets => prevPets.map(p => {
+          if (getItemId(p) === petId) {
+            // If result is the updated pet object (has name field), use it
+            if (result.name) return result;
+            // If result is just a note (no name field), append it to existing notes
+            return { ...p, notes: [...(p.notes || []), result] };
+          }
+          return p;
+        }));
+        
+        // Update selection to reflect changes in modal
+        setSelectedPet(prev => {
+          if (!prev || getItemId(prev) !== petId) return prev;
+          if (result.name) return result;
+          return { ...prev, notes: [...(prev.notes || []), result] };
+        });
+        
         setToast({ message: 'Note added', type: 'success' });
       }
     } catch (e) { setToast({ message: 'Error adding note', type: 'error' }); }
@@ -123,10 +140,25 @@ export default function Dashboard() {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` }
       });
+      
       if (res.ok) {
-        const updatedPet = await res.json();
-        setPets(pets.map(p => getItemId(p) === petId ? updatedPet : p));
-        setSelectedPet(updatedPet);
+        const result = await res.json();
+        setPets(prevPets => prevPets.map(p => {
+          if (getItemId(p) === petId) {
+            // If backend returns updated pet, use it
+            if (result.name) return result;
+            // Otherwise, filter locally
+            return { ...p, notes: (p.notes || []).filter(n => n.id !== noteId) };
+          }
+          return p;
+        }));
+
+        setSelectedPet(prev => {
+          if (!prev || getItemId(prev) !== petId) return prev;
+          if (result.name) return result;
+          return { ...prev, notes: (prev.notes || []).filter(n => n.id !== noteId) };
+        });
+
         setToast({ message: 'Note removed', type: 'success' });
       }
     } catch (e) { setToast({ message: 'Error removing note', type: 'error' }); }

@@ -69,7 +69,7 @@ export default function PetDetailsModal({ isOpen, onClose, pet, onAddNote, onDel
           {/* Hero Section */}
           <div className="relative h-96 flex-shrink-0">
              <img 
-               src={pet.image || pet.image_url} 
+               src={pet.image_url || pet.image} 
                alt={pet.name}
                className="w-full h-full object-cover"
              />
@@ -85,19 +85,19 @@ export default function PetDetailsModal({ isOpen, onClose, pet, onAddNote, onDel
 
              {/* Bio Overlay */}
              <div className="absolute bottom-10 left-10 right-10 flex flex-col md:flex-row md:items-end justify-between gap-6 z-10">
-                <div>
-                   <span className="font-handwriting text-3xl text-[#30A7DB] mb-2 block drop-shadow-md">Our Companion</span>
-                   <h2 className="text-5xl md:text-7xl font-black leading-[0.8] tracking-tighter uppercase drop-shadow-2xl" style={{ color: 'white' }}>{pet.name}</h2>
+                <div className="drop-shadow-2xl">
+                   <p className="font-handwriting text-3xl text-[#30A7DB] mb-2 block" style={{ color: '#30A7DB', textShadow: '0 2px 4px rgba(0,0,0,0.3)' }}>Our Companion</p>
+                   <h2 className="text-5xl md:text-7xl font-black leading-[0.8] tracking-tighter uppercase" style={{ color: 'white', textShadow: '0 4px 20px rgba(0,0,0,0.5)' }}>{pet.name}</h2>
                 </div>
                 <div className="flex gap-4">
-                   <div className="bg-white/10 backdrop-blur-md border border-white/10 rounded-3xl p-4 min-w-[120px] shadow-lg">
-                      <span className="block text-[8px] font-black uppercase text-white/50 tracking-widest mb-1">{t('dashboard.pets.petBreed')}</span>
-                      <span className="font-bold" style={{ color: 'white' }}>{pet.breed}</span>
+                   <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-3xl p-4 min-w-[120px] shadow-lg">
+                      <span className="block text-[8px] font-black uppercase text-white/60 tracking-widest mb-1">Breed</span>
+                      <span className="font-bold block" style={{ color: 'white' }}>{pet.breed}</span>
                    </div>
                    {pet.birthday && (
-                     <div className="bg-[#30A7DB]/20 backdrop-blur-md border border-[#30A7DB]/20 rounded-3xl p-4 min-w-[120px] shadow-lg">
-                        <span className="block text-[8px] font-black uppercase text-[#30A7DB] tracking-widest mb-1">{t('dashboard.pets.age')}</span>
-                        <span className="font-bold" style={{ color: 'white' }}>{calculateAge(pet.birthday)}</span>
+                     <div className="bg-[#30A7DB]/20 backdrop-blur-md border border-[#30A7DB]/30 rounded-3xl p-4 min-w-[120px] shadow-lg">
+                        <span className="block text-[8px] font-black uppercase text-[#30A7DB]/80 tracking-widest mb-1">Age</span>
+                        <span className="font-bold block" style={{ color: 'white' }}>{calculateAge(pet.birthday)}</span>
                      </div>
                    )}
                 </div>
@@ -172,11 +172,10 @@ export default function PetDetailsModal({ isOpen, onClose, pet, onAddNote, onDel
             </AnimatePresence>
 
             {/* Filter Chips - Hidden Scrollbar */}
-            <div className="flex items-center gap-3 overflow-x-auto no-scrollbar pb-2">
+            <div className="flex items-center gap-3 overflow-x-auto no-scrollbar pb-2" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
                <button 
                  onClick={() => setFilterCategory('all')}
                  className={`px-8 py-4 rounded-full text-[10px] font-black uppercase tracking-widest border-2 transition-all whitespace-nowrap ${filterCategory === 'all' ? 'bg-[#30A7DB] border-[#30A7DB] text-white shadow-lg' : 'bg-gray-50 dark:bg-white/5 border-gray-100 dark:border-white/10 text-gray-400 hover:border-gray-200'}`}
-                 style={{ color: filterCategory === 'all' ? 'white' : '' }}
                >
                  All Entries
                </button>
@@ -188,7 +187,8 @@ export default function PetDetailsModal({ isOpen, onClose, pet, onAddNote, onDel
                     style={{ 
                       borderColor: filterCategory === cat.value ? cat.color : '',
                       backgroundColor: filterCategory === cat.value ? `${cat.color}15` : '',
-                      color: filterCategory === cat.value ? cat.color : ''
+                      color: filterCategory === cat.value ? cat.color : '',
+                      boxShadow: filterCategory === cat.value ? `0 10px 20px ${cat.color}20` : ''
                     }}
                   >
                     {cat.label}
@@ -215,7 +215,7 @@ export default function PetDetailsModal({ isOpen, onClose, pet, onAddNote, onDel
                          <div className="flex items-center justify-between mb-4">
                             <span className="text-[10px] font-black uppercase tracking-[0.2em]" style={{ color: category?.color }}>{category?.label}</span>
                             <span className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest bg-gray-50 dark:bg-white/5 px-3 py-1 rounded-full">
-                              {new Date(note.date).toLocaleDateString()}
+                               {note.date ? new Date(note.date).toLocaleDateString() : 'Just now'}
                             </span>
                          </div>
                          <p className="text-xl text-black dark:text-white font-bold leading-snug mb-4">{note.text}</p>
