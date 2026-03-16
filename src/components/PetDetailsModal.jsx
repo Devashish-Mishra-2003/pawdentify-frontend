@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
 
-export default function PetDetailsModal({ isOpen, onClose, pet, onAddNote, onDeleteNote }) {
+export default function PetDetailsModal({ isOpen, onClose, pet, onDelete, onAddNote, onDeleteNote }) {
   const { t } = useTranslation();
   const [newNote, setNewNote] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('other');
@@ -18,12 +18,12 @@ export default function PetDetailsModal({ isOpen, onClose, pet, onAddNote, onDel
     { value: 'vaccination', label: t('dashboard.pets.petDetails.categories.vaccination'), color: '#30A7DB', icon: '💉' },
     { value: 'treats', label: t('dashboard.pets.petDetails.categories.treats'), color: '#F9C851', icon: '🦴' },
     { value: 'dailyLife', label: t('dashboard.pets.petDetails.categories.dailyLife'), color: '#10b981', icon: '🐾' },
-    { value: 'milestone', label: t('dashboard.pets.petDetails.categories.milestone'), color: '#8c52ff', icon: '🏆' },
+    { value: 'milestone', label: t('dashboard.pets.petDetails.categories.milestone'), color: '#8b5cf6', icon: '🏆' },
     { value: 'other', label: t('dashboard.pets.petDetails.categories.other'), color: '#6b7280', icon: '📝' }
   ];
 
   const handleAddNote = () => {
-    if (newNote.trim()) {
+    if (newNote.trim() && onAddNote) {
       onAddNote(getPetId(), newNote, selectedCategory);
       setNewNote('');
       setSelectedCategory('other');
@@ -103,19 +103,29 @@ export default function PetDetailsModal({ isOpen, onClose, pet, onAddNote, onDel
           </div>
 
           <div className="p-10 flex flex-col gap-10">
-            {/* Journal Header */}
+            {/* Action Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                <div className="flex items-center gap-4">
                   <div className="w-2 h-12 bg-[#8c52ff] rounded-full"></div>
-                  <h3 className="text-4xl font-black text-black dark:text-white tracking-tight">{t('dashboard.pets.petDetails.journal')}</h3>
+                  <h3 className="text-4xl font-black text-black dark:text-white tracking-tight">Journal Records</h3>
                </div>
                
-               <button
-                 onClick={() => setShowNoteInput(!showNoteInput)}
-                 className="pill-button bg-[#8c52ff] text-white py-4 px-8 shadow-[0_20px_40px_rgba(140,82,255,0.3)] hover:-translate-y-1"
-               >
-                 {t('dashboard.pets.petDetails.addNote')}
-               </button>
+               <div className="flex gap-3">
+                 {onDelete && (
+                   <button
+                     onClick={onDelete}
+                     className="pill-button bg-red-50 dark:bg-red-900/10 text-red-500 border-2 border-red-100 dark:border-red-900/20 px-8 hover:bg-red-500 hover:text-white transition-all shadow-none"
+                   >
+                     Remove Pet
+                   </button>
+                 )}
+                 <button
+                   onClick={() => setShowNoteInput(!showNoteInput)}
+                   className="pill-button bg-[#8c52ff] text-white py-4 px-8 shadow-[0_20px_40px_rgba(140,82,255,0.3)] hover:-translate-y-1"
+                 >
+                   {t('dashboard.pets.petDetails.addNote')}
+                 </button>
+               </div>
             </div>
 
             {/* Note Input Form */}
@@ -163,9 +173,9 @@ export default function PetDetailsModal({ isOpen, onClose, pet, onAddNote, onDel
             <div className="flex items-center gap-3 overflow-x-auto no-scrollbar pb-2">
                <button 
                  onClick={() => setFilterCategory('all')}
-                 className={`px-6 py-3 rounded-full text-xs font-black uppercase tracking-widest border-2 transition-all ${filterCategory === 'all' ? 'bg-[#30A7DB] border-[#30A7DB] text-white shadow-lg' : 'bg-gray-50 dark:bg-white/5 border-gray-100 dark:border-white/10 text-gray-500 hover:border-gray-200'}`}
+                 className={`px-6 py-3 rounded-full text-xs font-black uppercase tracking-widest border-2 transition-all whitespace-nowrap ${filterCategory === 'all' ? 'bg-[#30A7DB] border-[#30A7DB] text-white shadow-lg' : 'bg-gray-50 dark:bg-white/5 border-gray-100 dark:border-white/10 text-gray-500 hover:border-gray-200'}`}
                >
-                 All Entries
+                 All Logs
                </button>
                {categories.map(cat => (
                   <button 
@@ -197,7 +207,7 @@ export default function PetDetailsModal({ isOpen, onClose, pet, onAddNote, onDel
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
                         exit={{ opacity: 0, scale: 0.9 }}
-                        className="bento-card border-gray-100 dark:border-white/10 border-2 bg-white dark:bg-[#111111] p-8 flex flex-col md:flex-row gap-8 items-start group"
+                        className="bento-card border-gray-100 dark:border-white/10 border-2 bg-white dark:bg-[#111111] p-8 flex flex-col md:flex-row gap-8 items-start group relative overflow-hidden"
                       >
                          <div className="w-16 h-16 rounded-[2rem] flex items-center justify-center text-3xl shrink-0 shadow-inner" style={{ backgroundColor: `${category?.color}15` }}>
                             {category?.icon}
@@ -210,12 +220,14 @@ export default function PetDetailsModal({ isOpen, onClose, pet, onAddNote, onDel
                                </span>
                             </div>
                             <p className="text-xl text-black dark:text-white font-bold leading-snug mb-4">{note.text}</p>
-                            <button
-                              onClick={() => onDeleteNote(getPetId(), note.id)}
-                              className="text-[10px] font-black uppercase tracking-widest text-[#F07E7E] opacity-0 group-hover:opacity-100 transition-opacity"
-                            >
-                              Revoke Entry &times;
-                            </button>
+                            {onDeleteNote && (
+                              <button
+                                onClick={() => onDeleteNote(getPetId(), note.id)}
+                                className="text-[10px] font-black uppercase tracking-widest text-[#F07E7E] opacity-0 group-hover:opacity-100 transition-opacity"
+                              >
+                                Revoke Entry &times;
+                              </button>
+                            )}
                          </div>
                       </motion.div>
                     );

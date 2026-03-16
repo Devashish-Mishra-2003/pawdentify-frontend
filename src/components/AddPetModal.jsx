@@ -34,7 +34,13 @@ export default function AddPetModal({ isOpen, onClose, onSave }) {
     setIsSubmitting(true);
     setError('');
     try {
-      await onSave({ name: petName, breed: petBreed, birthday: petBirthday, image: petImage, imagePreview });
+      await onSave({
+        name: petName,
+        breed: petBreed,
+        birthday: petBirthday,
+        image: petImage,
+        imagePreview: imagePreview
+      });
       setPetName(''); setPetBreed(''); setPetBirthday(''); setPetImage(null); setImagePreview(null); setError('');
     } catch (err) {
       setError('Failed to add pet. Please try again.');
@@ -51,13 +57,13 @@ export default function AddPetModal({ isOpen, onClose, onSave }) {
 
   if (!isOpen) return null;
 
-  const inputClass = "w-full px-6 py-5 rounded-3xl bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/10 text-black dark:text-white placeholder-gray-400 dark:placeholder-gray-600 focus:outline-none focus:border-[#30A7DB] focus:ring-1 focus:ring-[#30A7DB] transition-all font-semibold shadow-inner";
+  const inputClass = "w-full px-6 py-5 rounded-3xl bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/10 text-black dark:text-white placeholder-gray-400 dark:placeholder-gray-600 focus:outline-none focus:border-[#30A7DB] transition-all font-semibold shadow-inner";
   const labelClass = "block text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 dark:text-gray-500 mb-3 px-2";
 
   return (
     <AnimatePresence>
       <motion.div
-        className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-20 backdrop-blur-xl no-scrollbar overflow-y-auto"
+        className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-24 backdrop-blur-xl no-scrollbar overflow-y-auto"
         style={{ backgroundColor: 'rgba(0,0,0,0.6)' }}
         onClick={handleClose}
         initial={{ opacity: 0 }}
@@ -95,7 +101,7 @@ export default function AddPetModal({ isOpen, onClose, onSave }) {
           </div>
 
           {/* Form Content */}
-          <div className="px-10 pb-10 overflow-y-auto no-scrollbar relative z-10 space-y-8">
+          <form onSubmit={handleSubmit} className="px-10 pb-10 overflow-y-auto no-scrollbar relative z-10 space-y-8">
             {error && (
               <motion.div
                 className="p-5 rounded-3xl bg-red-50 dark:bg-red-900/20 text-red-600 border border-red-100 dark:border-red-900/30 text-sm font-bold flex items-center gap-3"
@@ -119,8 +125,9 @@ export default function AddPetModal({ isOpen, onClose, onSave }) {
                    value={petName}
                    onChange={(e) => setPetName(e.target.value)}
                    disabled={isSubmitting}
+                   required
                    className={inputClass}
-                   placeholder="e.g., Max, Luna"
+                   placeholder={t('dashboard.pets.addPetModal.petNamePlaceholder') || "e.g., Max, Luna"}
                  />
                </div>
                <div>
@@ -130,8 +137,9 @@ export default function AddPetModal({ isOpen, onClose, onSave }) {
                    value={petBreed}
                    onChange={(e) => setPetBreed(e.target.value)}
                    disabled={isSubmitting}
+                   required
                    className={inputClass}
-                   placeholder="e.g., Golden Retriever"
+                   placeholder={t('dashboard.pets.addPetModal.petBreedPlaceholder') || "e.g., Golden Retriever"}
                  />
                </div>
             </div>
@@ -162,6 +170,7 @@ export default function AddPetModal({ isOpen, onClose, onSave }) {
                      >
                        <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
                        <button 
+                         type="button"
                          onClick={() => { setPetImage(null); setImagePreview(null); }}
                          className="absolute top-4 right-4 w-10 h-10 rounded-full bg-black/50 backdrop-blur-md text-white flex items-center justify-center hover:bg-black transition-colors"
                        >
@@ -190,19 +199,30 @@ export default function AddPetModal({ isOpen, onClose, onSave }) {
               <button
                 type="button"
                 onClick={handleClose}
+                disabled={isSubmitting}
                 className="flex-1 pill-button bg-gray-100 dark:bg-white/5 text-gray-400 dark:text-gray-500 hover:text-black dark:hover:text-white border-0 shadow-none py-5"
               >
                 {t('dashboard.pets.addPetModal.cancel')}
               </button>
               <button
-                onClick={handleSubmit}
+                type="submit"
                 disabled={isSubmitting}
-                className="flex-2 pill-button bg-[#8c52ff] text-white py-5 shadow-[0_20px_40px_rgba(140,82,255,0.3)] hover:-translate-y-1 transition-all disabled:opacity-50"
+                className="flex-2 pill-button bg-[#8c52ff] text-white py-5 shadow-[0_20px_40px_rgba(140,82,255,0.3)] hover:-translate-y-1 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
               >
-                {isSubmitting ? 'Saving...' : 'Explore Together'}
+                {isSubmitting ? (
+                  <>
+                    <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span>{t('dashboard.pets.addPetModal.saving')}</span>
+                  </>
+                ) : (
+                  t('dashboard.pets.addPetModal.save') || 'Explore Together'
+                )}
               </button>
             </div>
-          </div>
+          </form>
         </motion.div>
       </motion.div>
     </AnimatePresence>
